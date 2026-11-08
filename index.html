@@ -1,0 +1,161 @@
+
+import csv
+import os
+from datetime import datetime
+
+FILE_NAME = "expenses.csv"
+
+# Create CSV file automatically
+def create_file():
+    if not os.path.exists(FILE_NAME):
+        with open(FILE_NAME, "w", newline="", encoding="utf-8") as file:
+            writer = csv.writer(file)
+            writer.writerow(["Date", "Category", "Description", "Amount"])
+
+
+# Add a new expense
+def add_expense():
+    print("\n--- ADD EXPENSE ---")
+
+    date = input("Enter date (YYYY-MM-DD) or press Enter for today: ").strip()
+
+    if date == "":
+        date = datetime.today().strftime("%Y-%m-%d")
+    else:
+        try:
+            datetime.strptime(date, "%Y-%m-%d")
+        except ValueError:
+            print("Invalid date! Please use YYYY-MM-DD.")
+            return
+
+    category = input("Enter category: ").strip()
+    description = input("Enter description: ").strip()
+
+    if not category or not description:
+        print("Category and description cannot be empty!")
+        return
+
+    try:
+        amount = float(input("Enter amount: "))
+        if amount <= 0:
+            print("Amount must be greater than zero!")
+            return
+    except ValueError:
+        print("Please enter a valid amount!")
+        return
+
+    with open(FILE_NAME, "a", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        writer.writerow([date, category, description, amount])
+
+    print("\nExpense added successfully!")
+
+
+# View all expenses
+def view_expenses():
+    print("\n--- ALL EXPENSES ---")
+
+    with open(FILE_NAME, "r", newline="", encoding="utf-8") as file:
+        reader = csv.DictReader(file)
+        expenses = list(reader)
+
+    if not expenses:
+        print("No expense records found.")
+        return
+
+    print("-" * 75)
+    print(f"{'Date':<15}{'Category':<15}{'Description':<25}{'Amount':>15}")
+    print("-" * 75)
+
+    for expense in expenses:
+        print(
+            f"{expense['Date']:<15}"
+            f"{expense['Category']:<15}"
+            f"{expense['Description']:<25}"
+            f"{float(expense['Amount']):>15.2f}"
+        )
+
+    print("-" * 75)
+
+
+# Calculate total expenses
+def total_expenses():
+    total = 0.0
+
+    with open(FILE_NAME, "r", newline="", encoding="utf-8") as file:
+        reader = csv.DictReader(file)
+
+        for expense in reader:
+            total += float(expense["Amount"])
+
+    print(f"\nTotal Expenses: Rs. {total:.2f}")
+
+
+# Search expenses by category
+def search_category():
+    category = input("\nEnter category to search: ").strip()
+
+    if not category:
+        print("Please enter a category.")
+        return
+
+    found = False
+
+    with open(FILE_NAME, "r", newline="", encoding="utf-8") as file:
+        reader = csv.DictReader(file)
+
+        print("\n--- SEARCH RESULTS ---")
+
+        for expense in reader:
+            if expense["Category"].lower() == category.lower():
+                print(
+                    f"Date: {expense['Date']} | "
+                    f"Category: {expense['Category']} | "
+                    f"Description: {expense['Description']} | "
+                    f"Amount: Rs. {float(expense['Amount']):.2f}"
+                )
+                found = True
+
+    if not found:
+        print("No expenses found in this category.")
+
+
+# Main menu
+def main():
+    create_file()
+
+    while True:
+        print("\n================================")
+        print("     PERSONAL EXPENSE TRACKER")
+        print("================================")
+        print("1. Add Expense")
+        print("2. View All Expenses")
+        print("3. Calculate Total Expenses")
+        print("4. Search by Category")
+        print("5. Exit")
+        print("================================")
+
+        choice = input("Enter your choice (1-5): ").strip()
+
+        if choice == "1":
+            add_expense()
+
+        elif choice == "2":
+            view_expenses()
+
+        elif choice == "3":
+            total_expenses()
+
+        elif choice == "4":
+            search_category()
+
+        elif choice == "5":
+            print("Thank you for using Personal Expense Tracker!")
+            break
+
+        else:
+            print("Invalid choice! Please select between 1 and 5.")
+
+
+if __name__ == "__main__":
+    main()
